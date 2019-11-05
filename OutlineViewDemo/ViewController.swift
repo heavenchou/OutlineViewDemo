@@ -31,8 +31,19 @@ class ViewController: NSViewController {
 
         outlineView.dataSource = self
         outlineView.delegate = self
+        
+        // 處理 click
+        outlineView.target = self
+        outlineView.action = #selector(self.onItemClicked)
     }
 
+    // 處理 click
+    @objc private func onItemClicked() {
+        if let item = outlineView.item(atRow: outlineView.clickedRow) as? Sutra {
+            print("(\(outlineView.clickedRow),\( outlineView.clickedColumn)) : \(item.name)")
+        }
+    }
+    
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
