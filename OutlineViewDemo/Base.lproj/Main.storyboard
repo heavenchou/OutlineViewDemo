@@ -724,7 +724,7 @@
                                             <tableColumns>
                                                 <tableColumn identifier="keyColumn" width="116" minWidth="40" maxWidth="1000" id="Hrb-4H-2o4">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
-                                                        <font key="font" metaFont="message" size="11"/>
+                                                        <font key="font" metaFont="label" size="11"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                     </tableHeaderCell>
@@ -735,7 +735,7 @@
                                                     </textFieldCell>
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
-                                                        <tableCellView identifier="outlineViewCell" id="S8a-AA-VGP">
+                                                        <tableCellView id="S8a-AA-VGP">
                                                             <rect key="frame" x="1" y="1" width="116" height="17"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
@@ -747,6 +747,9 @@
                                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                                     </textFieldCell>
+                                                                    <connections>
+                                                                        <binding destination="S8a-AA-VGP" name="value" keyPath="objectValue.name" id="kGj-pJ-aA8"/>
+                                                                    </connections>
                                                                 </textField>
                                                             </subviews>
                                                             <connections>
@@ -757,7 +760,7 @@
                                                 </tableColumn>
                                                 <tableColumn width="238" minWidth="40" maxWidth="1000" id="s5c-mm-qW6">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
-                                                        <font key="font" metaFont="message" size="11"/>
+                                                        <font key="font" metaFont="label" size="11"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                     </tableHeaderCell>
@@ -789,6 +792,9 @@
                                                     </prototypeCellViews>
                                                 </tableColumn>
                                             </tableColumns>
+                                            <connections>
+                                                <binding destination="Uxf-hM-2Us" name="content" keyPath="arrangedObjects" id="XJu-fg-wyM"/>
+                                            </connections>
                                         </outlineView>
                                     </subviews>
                                 </clipView>
@@ -813,12 +819,13 @@
                             <constraint firstAttribute="trailing" secondItem="O8p-FV-B04" secondAttribute="trailing" constant="20" id="j88-Be-8WI"/>
                         </constraints>
                     </view>
-                    <connections>
-                        <outlet property="outlineView" destination="4bj-zq-ftI" id="bYP-dS-Qel"/>
-                    </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-                <treeController automaticallyPreparesContent="YES" childrenKeyPath="sub" id="Uxf-hM-2Us"/>
+                <treeController automaticallyPreparesContent="YES" childrenKeyPath="sub" id="Uxf-hM-2Us">
+                    <connections>
+                        <binding destination="XfG-lQ-9wD" name="contentArray" keyPath="self.sutra" id="Kv6-hj-JsE"/>
+                    </connections>
+                </treeController>
                 <userDefaultsController representsSharedInstance="YES" id="F5e-zA-w4F"/>
             </objects>
             <point key="canvasLocation" x="36" y="654"/>

@@ -10,8 +10,8 @@ import Cocoa
 
 // MARK: 資料結構
 @objcMembers class Sutra:NSObject {
-    var name: String = ""
-    var sub: [Sutra] = []
+    dynamic var name: String = ""
+    dynamic var sub: [Sutra] = []
     init (_ name: String) {
         self.name = name
     }
@@ -19,8 +19,7 @@ import Cocoa
 
 class ViewController: NSViewController {
     
-    @IBOutlet weak var outlineView: NSOutlineView!
-    @objc var sutra: [Sutra] = []
+    @objc dynamic var sutra: [Sutra] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,8 +28,8 @@ class ViewController: NSViewController {
         // 資料實作
         makeSutra()
 
-        outlineView.dataSource = self
-        outlineView.delegate = self
+        // outlineView.dataSource = self
+        // outlineView.delegate = self
     }
 
     override var representedObject: Any? {
@@ -39,6 +38,7 @@ class ViewController: NSViewController {
         }
     }
     
+    /*
     override func viewDidAppear() {
         super.viewDidAppear()
         // 展現全部的方法
@@ -46,6 +46,7 @@ class ViewController: NSViewController {
         // 展現節點 1 的方法，子層不要呈現
         //outlineView.expandItem(outlineView.item(atRow: 1), expandChildren: false)
     }
+    */
     
     // MARK: 自訂成員函式，資料實作
     fileprivate func makeSutra() {
@@ -61,7 +62,7 @@ class ViewController: NSViewController {
         sutra[1].sub[1].sub.append(Sutra("般若金剛"))
     }
 }
-
+/*
 // MARK: 資料來源和代理實作
 // 將代理程式另外獨立出來，也是不錯的方法
 extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
@@ -135,4 +136,4 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
         }
     }
 }
-
+*/
