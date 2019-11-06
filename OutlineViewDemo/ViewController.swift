@@ -19,6 +19,7 @@ import Cocoa
 
 class ViewController: NSViewController {
     
+    @IBOutlet weak var outlineView: NSOutlineView!
     @objc dynamic var sutra: [Sutra] = []
 
     override func viewDidLoad() {
@@ -30,8 +31,23 @@ class ViewController: NSViewController {
 
         // outlineView.dataSource = self
         // outlineView.delegate = self
+    
+        // 處理 click
+        outlineView.target = self
+        outlineView.action = #selector(self.onItemClicked)
+        //outlineView.doubleAction = #selector(self.onItemDoubleClicked)
+       
     }
-
+        
+    // 處理 click
+    @objc private func onItemClicked(sender: Any) {
+        if let node = outlineView.item(atRow: outlineView.clickedRow) as? NSTreeNode {
+            if let item = node.representedObject as? Sutra {
+                print("\(item.name)")
+                print("(\(outlineView.clickedRow),\( outlineView.clickedColumn))")
+            }
+        }
+    }
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
