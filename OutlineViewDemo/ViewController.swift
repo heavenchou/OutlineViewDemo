@@ -35,7 +35,7 @@ class ViewController: NSViewController {
         // 處理 click
         outlineView.target = self
         outlineView.action = #selector(self.onItemClicked)
-        //outlineView.doubleAction = #selector(self.onItemDoubleClicked)
+        outlineView.doubleAction = #selector(self.onItemDbClicked)
        
     }
         
@@ -47,6 +47,10 @@ class ViewController: NSViewController {
                 print("(\(outlineView.clickedRow),\( outlineView.clickedColumn))")
             }
         }
+    }
+    // 處理 double click
+    @objc private func onItemDbClicked(sender: Any) {
+        print("Double Click")
     }
     override var representedObject: Any? {
         didSet {
@@ -76,6 +80,13 @@ class ViewController: NSViewController {
         sutra[1].sub.append(Sutra("金剛經"))
         sutra[1].sub[1].sub.append(Sutra("能斷金剛"))
         sutra[1].sub[1].sub.append(Sutra("般若金剛"))
+    }
+}
+
+extension NSOutlineView {
+    open override func mouseDown(with event: NSEvent) {
+        print(event.clickCount)
+        super.mouseDown(with: event)
     }
 }
 /*
