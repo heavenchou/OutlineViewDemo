@@ -8,6 +8,8 @@
 
 import Cocoa
 
+let REORDER_PASTEBOARD_TYPE = "com.kinematicsystems.outline.item"
+
 // MARK: 資料結構
 @objcMembers class Sutra:NSObject {
     dynamic var name: String = ""
@@ -19,8 +21,8 @@ import Cocoa
 
 class ViewController: NSViewController {
     
-    @IBOutlet weak var outlineView2: NSOutlineView!
     @IBOutlet weak var outlineView: NSOutlineView!
+    @IBOutlet weak var outlineBindView: NSOutlineView!
     
     @objc dynamic var sutra: [Sutra] = []
 
@@ -30,23 +32,32 @@ class ViewController: NSViewController {
         // Do any additional setup after loading the view.
         // 資料實作
         makeSutra()
-
-        // outlineView.dataSource = self
-        // outlineView.delegate = self
+        
+        outlineView.delegate = self
+        outlineView.dataSource = self
     
         // 處理 click
-        outlineView.target = self
-        outlineView.action = #selector(self.onItemClicked)
-        outlineView.doubleAction = #selector(self.onItemDbClicked)
-       
+        outlineBindView.target = self
+        outlineBindView.action = #selector(self.onItemClicked)
+        outlineBindView.doubleAction = #selector(self.onItemDbClicked)
+
+        
+        // Register for the dropped object types we can accept.
+        outlineView.registerForDraggedTypes([NSPasteboard.PasteboardType (rawValue: REORDER_PASTEBOARD_TYPE)])
+        
+        // Disable dragging items from our view to other applications.
+        outlineView.setDraggingSourceOperationMask(NSDragOperation(), forLocal: false)
+        
+        // Enable dragging items within and into our view.
+        outlineView.setDraggingSourceOperationMask(NSDragOperation.every, forLocal: true)
     }
         
     // 處理 click
     @objc private func onItemClicked(sender: Any) {
-        if let node = outlineView.item(atRow: outlineView.clickedRow) as? NSTreeNode {
+        if let node = outlineBindView.item(atRow: outlineBindView.clickedRow) as? NSTreeNode {
             if let item = node.representedObject as? Sutra {
                 print("\(item.name)")
-                print("(\(outlineView.clickedRow),\( outlineView.clickedColumn))")
+                print("(\(outlineBindView.clickedRow),\( outlineBindView.clickedColumn))")
             }
         }
     }
@@ -83,8 +94,6 @@ class ViewController: NSViewController {
         sutra[1].sub[1].sub.append(Sutra("能斷金剛"))
         sutra[1].sub[1].sub.append(Sutra("般若金剛"))
         
-        outlineView2.delegate = self
-        outlineView2.dataSource = self
     }
 }
 
@@ -152,7 +161,7 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
         // 好像就是做出一個 cell，內容是 text，然後傳回去
         
         let cellIdentifier = NSUserInterfaceItemIdentifier("outlineViewCell")
-        let cell = outlineView2.makeView(withIdentifier: cellIdentifier, owner: self) as! NSTableCellView
+        let cell = outlineView.makeView(withIdentifier: cellIdentifier, owner: self) as! NSTableCellView
         cell.textField!.stringValue = text
 
         return cell
@@ -167,5 +176,131 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
             return false
         }
     }
+    
+    
+    // MARK: Drag & Drop
+    
+    // Implement this method to enable the table to be an NSDraggingSource that supports dragging multiple items.
+    // 實現此方法可使表成為 NSDraggingSource 以支持拖動多個項目的表。
+/*
+    func outlineView(_ outlineView: NSOutlineView, pasteboardWriterForItem item: Any) -> NSPasteboardWriting? {
+        print(1)
+        let pbItem:NSPasteboardItem = NSPasteboardItem()
+        pbItem.setDataProvider(self, forTypes: [NSPasteboard.PasteboardType(rawValue: REORDER_PASTEBOARD_TYPE)])
+        return pbItem
+    }
+    
+    // Implement this method know when the given dragging session is about to begin and potentially modify the dragging session.
+    // 知道給定的拖動會話何時開始並有可能修改拖動會話時，實施此方法即可。
+
+    func outlineView(_ outlineView: NSOutlineView, draggingSession session: NSDraggingSession, willBeginAt screenPoint: NSPoint, forItems draggedItems: [Any]) {
+        print(2)
+        draggedNode = draggedItems[0] as AnyObject?
+        session.draggingPasteboard.setData(Data(), forType: NSPasteboard.PasteboardType(rawValue: REORDER_PASTEBOARD_TYPE))
+    }
+    
+    // Used by an outline view to determine a valid drop target.
+    // 大綱視圖用於確定有效的放置目標。
+
+    func outlineView(_ outlineView: NSOutlineView, validateDrop info: NSDraggingInfo, proposedItem item: Any?, proposedChildIndex index: Int) -> NSDragOperation {
+        print(3)
+        var retVal:NSDragOperation = NSDragOperation()
+        var itemName = "nilItem"
+        
+        let baseItem = item as? BaseItem
+        
+        if baseItem != nil
+        {
+            itemName = baseItem!.name
+        }
+
+        // proposedItem is the item we are dropping on not the item we are dragging
+        // - If dragging a set target item must be nil
+        if (item as AnyObject? !== draggedNode && index != NSOutlineViewDropOnItemIndex)
+        {
+            if let _ = draggedNode as? FolderItem
+            {
+                if (item == nil)
+                {
+                    retVal = NSDragOperation.generic
+                }
+            }
+            else if let _ = draggedNode as? TestItem
+            {
+                retVal = NSDragOperation.generic
+            }
+        }
+        
+        debugPrint("validateDrop targetItem:\(itemName) childIndex:\(index) returning: \(retVal != NSDragOperation())")
+        return retVal
+    }
+    
+    // Returns a Boolean value that indicates whether a drop operation was successful.
+    // 返回一個布爾值，該值指示放置操作是否成功。
+
+    func outlineView(_ outlineView: NSOutlineView, acceptDrop info: NSDraggingInfo, item: Any?, childIndex index: Int) -> Bool {
+        print(4)
+        var retVal:Bool = false
+        if !(draggedNode is BaseItem)
+        {
+            return false
+        }
+        
+        let srcItem = draggedNode as! BaseItem
+        let destItem:FolderItem? = item as? FolderItem
+        let parentItem:FolderItem? = outlineView.parent(forItem: srcItem) as? FolderItem
+        let oldIndex = outlineView.childIndex(forItem: srcItem)
+        var   toIndex = index
+        
+        debugPrint("move src:\(srcItem.name) dest:\(String(describing: destItem?.name)) destIndex:\(index) oldIndex:\(oldIndex) srcParent:\(String(describing: parentItem?.name)) toIndex:\(toIndex) toParent:\(String(describing: destItem?.name)) childIndex:\(index)", terminator: "")
+        
+        if (toIndex == NSOutlineViewDropOnItemIndex) // This should never happen, prevented in validateDrop
+        {
+            toIndex = 0
+        }
+        else if toIndex > oldIndex
+        {
+            toIndex -= 1
+        }
+        
+        if srcItem is FolderItem && destItem != nil
+        {
+            retVal = false
+        }
+        else if oldIndex != toIndex || parentItem !== destItem
+        {
+            testData.moveItemAtIndex(oldIndex, inParent: parentItem, toIndex: toIndex, inParent: destItem)
+            outlineView.moveItem(at: oldIndex, inParent: parentItem, to: toIndex, inParent: destItem)
+            retVal = true
+        }
+        
+        debugPrint(" returning:\(retVal)")
+        if retVal
+        {
+            testData.dump()
+        }
+        return retVal
+    }
+    
+    // Implement this method to know when the given dragging session has ended.
+    // 實現此方法以了解給定的拖動會話何時結束。
+
+    func outlineView(_ outlineView: NSOutlineView, draggingSession session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
+        //debugPrint("Drag session ended")
+        print(5)
+        self.draggedNode = nil
+    }
+    
+    // Asks the receiver to provide data for a specified type to a given pasteboard.
+    // 要求接收者向指定的粘貼板提供指定類型的數據。
+
+    // MARK: NSPasteboardItemDataProvider
+    func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: NSPasteboard.PasteboardType)
+    {
+        print(6)
+        let s = "Outline Pasteboard Item"
+        item.setString(s, forType: type)
+    }
+*/
 }
 

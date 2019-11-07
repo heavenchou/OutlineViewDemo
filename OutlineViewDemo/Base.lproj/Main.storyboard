@@ -912,8 +912,8 @@
                         </subviews>
                     </view>
                     <connections>
-                        <outlet property="outlineView" destination="4bj-zq-ftI" id="OlR-bm-jMy"/>
-                        <outlet property="outlineView2" destination="GIs-87-Kdi" id="ApF-or-jOS"/>
+                        <outlet property="outlineBindView" destination="4bj-zq-ftI" id="OlR-bm-jMy"/>
+                        <outlet property="outlineView" destination="GIs-87-Kdi" id="ApF-or-jOS"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
