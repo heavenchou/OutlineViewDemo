@@ -19,7 +19,9 @@ import Cocoa
 
 class ViewController: NSViewController {
     
+    @IBOutlet weak var outlineView2: NSOutlineView!
     @IBOutlet weak var outlineView: NSOutlineView!
+    
     @objc dynamic var sutra: [Sutra] = []
 
     override func viewDidLoad() {
@@ -80,6 +82,9 @@ class ViewController: NSViewController {
         sutra[1].sub.append(Sutra("金剛經"))
         sutra[1].sub[1].sub.append(Sutra("能斷金剛"))
         sutra[1].sub[1].sub.append(Sutra("般若金剛"))
+        
+        outlineView2.delegate = self
+        outlineView2.dataSource = self
     }
 }
 
@@ -89,7 +94,7 @@ extension NSOutlineView {
         super.mouseDown(with: event)
     }
 }
-/*
+
 // MARK: 資料來源和代理實作
 // 將代理程式另外獨立出來，也是不錯的方法
 extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
@@ -147,7 +152,7 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
         // 好像就是做出一個 cell，內容是 text，然後傳回去
         
         let cellIdentifier = NSUserInterfaceItemIdentifier("outlineViewCell")
-        let cell = outlineView.makeView(withIdentifier: cellIdentifier, owner: self) as! NSTableCellView
+        let cell = outlineView2.makeView(withIdentifier: cellIdentifier, owner: self) as! NSTableCellView
         cell.textField!.stringValue = text
 
         return cell
@@ -163,4 +168,4 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
         }
     }
 }
-*/
+
