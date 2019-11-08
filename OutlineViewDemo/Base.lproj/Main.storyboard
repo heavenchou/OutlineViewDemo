@@ -919,7 +919,7 @@
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <treeController automaticallyPreparesContent="YES" childrenKeyPath="sub" id="Uxf-hM-2Us">
                     <connections>
-                        <binding destination="XfG-lQ-9wD" name="contentArray" keyPath="self.sutra" id="Kv6-hj-JsE"/>
+                        <binding destination="XfG-lQ-9wD" name="contentArray" keyPath="self.sutraBind" id="N5E-Sl-P4a"/>
                     </connections>
                 </treeController>
                 <userDefaultsController representsSharedInstance="YES" id="F5e-zA-w4F"/>

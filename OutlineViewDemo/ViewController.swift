@@ -25,13 +25,17 @@ class ViewController: NSViewController {
     @IBOutlet weak var outlineBindView: NSOutlineView!
     
     @objc dynamic var sutra: [Sutra] = []
-
+    @objc dynamic var sutraBind: [Sutra] = []
+    
+    var draggedNode: AnyObject? = nil
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
         // 資料實作
         makeSutra()
+        makeSutraBind()
         
         outlineView.delegate = self
         outlineView.dataSource = self
@@ -71,29 +75,64 @@ class ViewController: NSViewController {
         }
     }
     
-    /*
+    
     override func viewDidAppear() {
         super.viewDidAppear()
         // 展現全部的方法
-        //outlineView.expandItem(nil, expandChildren: true)
+        outlineView.expandItem(nil, expandChildren: true)
+        outlineBindView.expandItem(nil, expandChildren: true)
         // 展現節點 1 的方法，子層不要呈現
         //outlineView.expandItem(outlineView.item(atRow: 1), expandChildren: false)
     }
-    */
     
     // MARK: 自訂成員函式，資料實作
+    fileprivate func makeSutraBind() {
+        sutraBind.append(Sutra("阿含"))
+        sutraBind[0].sub.append(Sutra("雜阿含"))
+        sutraBind[0].sub.append(Sutra("中阿含"))
+        sutraBind[0].sub.append(Sutra("長阿含"))
+        
+        sutraBind.append(Sutra("般若"))
+        sutraBind[1].sub.append(Sutra("心經"))
+        sutraBind[1].sub.append(Sutra("金剛經"))
+        sutraBind[1].sub[1].sub.append(Sutra("能斷金剛"))
+        sutraBind[1].sub[1].sub.append(Sutra("般若金剛"))
+    }
+    
+    // 由 nav.txt 讀取資料
     fileprivate func makeSutra() {
-        sutra.append(Sutra("阿含"))
-        sutra[0].sub.append(Sutra("雜阿含"))
-        sutra[0].sub.append(Sutra("中阿含"))
-        sutra[0].sub.append(Sutra("長阿含"))
+        var stack: [Sutra] = []
         
-        sutra.append(Sutra("般若"))
-        sutra[1].sub.append(Sutra("心經"))
-        sutra[1].sub.append(Sutra("金剛經"))
-        sutra[1].sub[1].sub.append(Sutra("能斷金剛"))
-        sutra[1].sub[1].sub.append(Sutra("般若金剛"))
+        let file = "/Users/heaven/desktop/nav.txt"
+        let contents = try! String(contentsOfFile: file, encoding: .utf8)
+        let lines = contents.split(separator: "\r\n")
         
+        let root = Sutra("")
+        stack.append(root)
+        for line in lines {
+            let lv = getLevel(String(line))
+            let line2 = line.trimmingCharacters(in: ["\t"])
+            let tmp = Sutra(line2)
+            stack[lv].sub.append(tmp)
+            if(stack.count > lv+1) {
+                stack[lv+1] = tmp
+            } else {
+                stack.append(tmp)
+            }
+        }
+        sutra = root.sub
+    }
+    // 傳回字中串有多少 \t 在前面
+    func getLevel(_ str: String) -> Int {
+        var lv = 0
+        for c in str {
+            if c == "\t" {
+                lv += 1
+            } else {
+                return lv
+            }
+        }
+        return lv
     }
 }
 
@@ -106,7 +145,7 @@ extension NSOutlineView {
 
 // MARK: 資料來源和代理實作
 // 將代理程式另外獨立出來，也是不錯的方法
-extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
+extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate, NSPasteboardItemDataProvider {
     
     // 1.詢問 item 這個節點底下有多少子節點
     func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
@@ -182,9 +221,8 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
     
     // Implement this method to enable the table to be an NSDraggingSource that supports dragging multiple items.
     // 實現此方法可使表成為 NSDraggingSource 以支持拖動多個項目的表。
-/*
+
     func outlineView(_ outlineView: NSOutlineView, pasteboardWriterForItem item: Any) -> NSPasteboardWriting? {
-        print(1)
         let pbItem:NSPasteboardItem = NSPasteboardItem()
         pbItem.setDataProvider(self, forTypes: [NSPasteboard.PasteboardType(rawValue: REORDER_PASTEBOARD_TYPE)])
         return pbItem
@@ -194,7 +232,7 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
     // 知道給定的拖動會話何時開始並有可能修改拖動會話時，實施此方法即可。
 
     func outlineView(_ outlineView: NSOutlineView, draggingSession session: NSDraggingSession, willBeginAt screenPoint: NSPoint, forItems draggedItems: [Any]) {
-        print(2)
+        print("開始點\(screenPoint)")
         draggedNode = draggedItems[0] as AnyObject?
         session.draggingPasteboard.setData(Data(), forType: NSPasteboard.PasteboardType(rawValue: REORDER_PASTEBOARD_TYPE))
     }
@@ -203,7 +241,18 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
     // 大綱視圖用於確定有效的放置目標。
 
     func outlineView(_ outlineView: NSOutlineView, validateDrop info: NSDraggingInfo, proposedItem item: Any?, proposedChildIndex index: Int) -> NSDragOperation {
-        print(3)
+//        print("3:")
+//        if let i = item as? Sutra {
+//            print(i.name)
+//
+//        } else {
+//            print("not sutra")
+//        }
+//        print("int:\(index):\(NSOutlineViewDropOnItemIndex)")
+        var retVal:NSDragOperation = NSDragOperation()
+        retVal = NSDragOperation.generic
+        return retVal
+        /*
         var retVal:NSDragOperation = NSDragOperation()
         var itemName = "nilItem"
         
@@ -232,14 +281,32 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
         }
         
         debugPrint("validateDrop targetItem:\(itemName) childIndex:\(index) returning: \(retVal != NSDragOperation())")
-        return retVal
+        return retVa
+        */
     }
     
     // Returns a Boolean value that indicates whether a drop operation was successful.
     // 返回一個布爾值，該值指示放置操作是否成功。
 
     func outlineView(_ outlineView: NSOutlineView, acceptDrop info: NSDraggingInfo, item: Any?, childIndex index: Int) -> Bool {
-        print(4)
+        
+        var retVal: Bool = false
+        
+        let srcItem = draggedNode as! Sutra
+        let destItem = item as! Sutra
+        let oldIndex = outlineView.childIndex(forItem: srcItem)
+        let toIndex = index
+        let parentItem = outlineView.parent(forItem: draggedNode)
+        
+        print("move \(srcItem.name) \(oldIndex) to \(destItem.name) \(toIndex)")
+        outlineView.moveItem(at: oldIndex, inParent: parentItem, to: toIndex, inParent: item)
+        
+        
+        
+        retVal = true
+        return retVal
+        
+/*
         var retVal:Bool = false
         if !(draggedNode is BaseItem)
         {
@@ -280,6 +347,7 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
             testData.dump()
         }
         return retVal
+*/
     }
     
     // Implement this method to know when the given dragging session has ended.
@@ -287,20 +355,19 @@ extension ViewController: NSOutlineViewDataSource, NSOutlineViewDelegate {
 
     func outlineView(_ outlineView: NSOutlineView, draggingSession session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
         //debugPrint("Drag session ended")
-        print(5)
         self.draggedNode = nil
     }
-    
+
     // Asks the receiver to provide data for a specified type to a given pasteboard.
     // 要求接收者向指定的粘貼板提供指定類型的數據。
 
     // MARK: NSPasteboardItemDataProvider
     func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: NSPasteboard.PasteboardType)
     {
-        print(6)
-        let s = "Outline Pasteboard Item"
-        item.setString(s, forType: type)
+//        print(6)
+//        let s = "Outline Pasteboard Item"
+//        item.setString(s, forType: type)
     }
-*/
+
 }
 
